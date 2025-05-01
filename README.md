@@ -1,2 +1,2 @@
 # PpangAI
-AI fr Sustainability
+AI for Sustainability
