@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+
+{% block title %}Ppang - Data Entry{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-edit text-primary"></i> Data Entry
+</h1>
+
+<!-- Tab navigation -->
+<ul class="nav nav-tabs mb-4" id="dataEntryTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active form-tab-link" id="transport-tab" data-bs-toggle="tab" data-bs-target="#transport" type="button" role="tab" aria-controls="transport" aria-selected="true">
+            <i class="fas fa-car"></i> Transport
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link form-tab-link" id="energy-tab" data-bs-toggle="tab" data-bs-target="#energy" type="button" role="tab" aria-controls="energy" aria-selected="false">
+            <i class="fas fa-bolt"></i> Energy
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link form-tab-link" id="food-tab" data-bs-toggle="tab" data-bs-target="#food" type="button" role="tab" aria-controls="food" aria-selected="false">
+            <i class="fas fa-utensils"></i> Food
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link form-tab-link" id="waste-tab" data-bs-toggle="tab" data-bs-target="#waste" type="button" role="tab" aria-controls="waste" aria-selected="false">
+            <i class="fas fa-trash"></i> Waste
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link form-tab-link" id="custom-tab" data-bs-toggle="tab" data-bs-target="#custom" type="button" role="tab" aria-controls="custom" aria-selected="false">
+            <i class="fas fa-plus-circle"></i> Custom
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link form-tab-link" id="data-records-tab" data-bs-toggle="tab" data-bs-target="#data-records" type="button" role="tab" aria-controls="data-records" aria-selected="false">
+            <i class="fas fa-table"></i> Data Records
+        </button>
+    </li>
+</ul>
+
+<!-- Tab content -->
+<div class="tab-content" id="dataEntryTabContent">
+    <!-- Transport Tab -->
+    <div class="tab-pane fade show active form-tab" id="transport" role="tabpanel" aria-labelledby="transport-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-car"></i> Transport Emissions</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_transport') }}">
+                    {{ transport_form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ transport_form.date.label(class="form-label") }}
+                        {{ transport_form.date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ transport_form.transport_type.label(class="form-label") }}
+                        {{ transport_form.transport_type(class="form-select") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ transport_form.distance.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ transport_form.distance(class="form-control") }}
+                            <span class="input-group-text">km</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i> {{ transport_form.submit.label.text }}
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <h6>About Transport Emissions</h6>
+                    <p>Transport emissions vary greatly depending on the mode of transportation. Walking and cycling produce no direct emissions, while cars, planes, and other motorized vehicles emit varying amounts of greenhouse gases.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Energy Tab -->
+    <div class="tab-pane fade form-tab" id="energy" role="tabpanel" aria-labelledby="energy-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Energy Emissions</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_energy') }}">
+                    {{ energy_form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ energy_form.date.label(class="form-label") }}
+                        {{ energy_form.date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ energy_form.energy_type.label(class="form-label") }}
+                        {{ energy_form.energy_type(class="form-select") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ energy_form.amount.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ energy_form.amount(class="form-control") }}
+                            <span class="input-group-text" id="energy-unit">kWh</span>
+                        </div>
+                        <div class="form-text">Enter kWh for electricity or m³ for gas</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i> {{ energy_form.submit.label.text }}
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <h6>About Energy Emissions</h6>
+                    <p>Energy emissions come from electricity generation, heating, and cooling. The carbon intensity varies based on the energy source (coal, natural gas, renewables, etc.).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Food Tab -->
+    <div class="tab-pane fade form-tab" id="food" role="tabpanel" aria-labelledby="food-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-utensils"></i> Food Emissions</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_food') }}">
+                    {{ food_form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ food_form.date.label(class="form-label") }}
+                        {{ food_form.date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ food_form.food_type.label(class="form-label") }}
+                        {{ food_form.food_type(class="form-select") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ food_form.weight.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ food_form.weight(class="form-control") }}
+                            <span class="input-group-text">kg</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i> {{ food_form.submit.label.text }}
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <h6>About Food Emissions</h6>
+                    <p>Food emissions vary greatly by type. Plant-based foods generally have lower carbon footprints than animal products, with beef having the highest impact per kilogram.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Waste Tab -->
+    <div class="tab-pane fade form-tab" id="waste" role="tabpanel" aria-labelledby="waste-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-trash"></i> Waste Tracking</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_waste') }}">
+                    {{ waste_form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ waste_form.date.label(class="form-label") }}
+                        {{ waste_form.date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ waste_form.waste_type.label(class="form-label") }}
+                        {{ waste_form.waste_type(class="form-select") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ waste_form.weight.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ waste_form.weight(class="form-control") }}
+                            <span class="input-group-text">kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ waste_form.disposal_method.label(class="form-label") }}
+                        {{ waste_form.disposal_method(class="form-select") }}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i> {{ waste_form.submit.label.text }}
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <h6>About Waste Emissions</h6>
+                    <p>Waste disposal methods greatly affect carbon emissions. Landfills produce methane, while recycling and composting can reduce emissions. Reusing items is the most environmentally friendly option.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom Tab -->
+    <div class="tab-pane fade form-tab" id="custom" role="tabpanel" aria-labelledby="custom-tab">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-plus-circle"></i> Custom Emission Entry</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_custom') }}">
+                    {{ custom_form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ custom_form.date.label(class="form-label") }}
+                        {{ custom_form.date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ custom_form.category.label(class="form-label") }}
+                        {{ custom_form.category(class="form-control", placeholder="E.g., Shopping, Travel") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ custom_form.subcategory.label(class="form-label") }}
+                        {{ custom_form.subcategory(class="form-control", placeholder="E.g., Clothing, Hotel Stay") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ custom_form.amount.label(class="form-label") }}
+                        {{ custom_form.amount(class="form-control") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ custom_form.unit.label(class="form-label") }}
+                        {{ custom_form.unit(class="form-control", placeholder="E.g., kWh, items, nights") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ custom_form.emission_kg.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ custom_form.emission_kg(class="form-control") }}
+                            <span class="input-group-text">kg CO2e</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {{ custom_form.submit.label.text }}
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <h6>About Custom Emissions</h6>
+                    <p>Use this form to record emissions that don't fit into the standard categories. You can find emission factors for various activities through research or carbon calculators online.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Records Tab -->
+    <div class="tab-pane fade form-tab" id="data-records" role="tabpanel" aria-labelledby="data-records-tab">
+        <ul class="nav nav-pills mb-3" id="records-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="emissions-records-tab" data-bs-toggle="pill" data-bs-target="#emissions-records" type="button" role="tab" aria-controls="emissions-records" aria-selected="true">Emissions Data</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="waste-records-tab" data-bs-toggle="pill" data-bs-target="#waste-records" type="button" role="tab" aria-controls="waste-records" aria-selected="false">Waste Data</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="records-tabContent">
+            <div class="tab-pane fade show active" id="emissions-records" role="tabpanel" aria-labelledby="emissions-records-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-table"></i> Emissions Records</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if emission_data %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Category</th>
+                                            <th>Subcategory</th>
+                                            <th>Amount</th>
+                                            <th>Unit</th>
+                                            <th>Emissions (kg CO2e)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for entry in emission_data|sort(attribute='date', reverse=True) %}
+                                            <tr>
+                                                <td>{{ entry.date }}</td>
+                                                <td>{{ entry.category }}</td>
+                                                <td>{{ entry.subcategory }}</td>
+                                                <td>{{ entry.amount }}</td>
+                                                <td>{{ entry.unit }}</td>
+                                                <td>{{ entry.emission_kg }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No emissions data recorded yet.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="waste-records" role="tabpanel" aria-labelledby="waste-records-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-table"></i> Waste Records</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if waste_data %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Waste Type</th>
+                                            <th>Weight (kg)</th>
+                                            <th>Disposal Method</th>
+                                            <th>Emissions (kg CO2e)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for entry in waste_data|sort(attribute='date', reverse=True) %}
+                                            <tr>
+                                                <td>{{ entry.date }}</td>
+                                                <td>{{ entry.waste_type }}</td>
+                                                <td>{{ entry.weight_kg }}</td>
+                                                <td>{{ entry.disposal_method }}</td>
+                                                <td>{{ entry.emission_kg }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No waste data recorded yet.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update energy unit based on selection
+        const energyTypeSelect = document.querySelector('#energy #energy_type');
+        const energyUnitSpan = document.querySelector('#energy-unit');
+        
+        if (energyTypeSelect && energyUnitSpan) {
+            energyTypeSelect.addEventListener('change', function() {
+                if (this.value === 'Electricity' || this.value === 'Renewable') {
+                    energyUnitSpan.textContent = 'kWh';
+                } else {
+                    energyUnitSpan.textContent = 'm³';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Ppang - Recommendations{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-lightbulb text-primary"></i> Ppang's Recommendations
+</h1>
+
+{% if error %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-body text-center">
+            <h5 class="card-title">Need recommendations?</h5>
+            <p class="card-text">Add your emissions data first to get personalized advice.</p>
+            <a href="{{ url_for('data_entry') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Add Emission Data
+            </a>
+        </div>
+    </div>
+{% else %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Your Emission Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div id="breakdown-chart" class="chart mb-3"></div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Your highest emissions come from the <strong>{{ highest_category }}</strong> category.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Your Sustainability Action Plan</h5>
+                </div>
+                <div class="card-body">
+                    <p>Based on your data, here's a suggested action plan to reduce your environmental impact:</p>
+                    
+                    <div class="timeline">
+                        {% for item in action_plan %}
+                            <div class="timeline-item">
+                                <div class="timeline-heading">{{ item.time }}</div>
+                                <div>{{ item.action }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="alert alert-success mt-3">
+                        <i class="fas fa-leaf"></i> Tip: Come back regularly to update your data and track your progress!
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Tailored Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Transport recommendations -->
+                    {% if 'transport' in recommendations and recommendations.transport %}
+                        <div class="recommendation-category">
+                            <i class="fas fa-car"></i> Transport Recommendations
+                        </div>
+                        <div class="recommendation-cards">
+                            {% for rec in recommendations.transport %}
+                                <div class="recommendation-card">
+                                    {{ rec }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Energy recommendations -->
+                    {% if 'energy' in recommendations and recommendations.energy %}
+                        <div class="recommendation-category mt-4">
+                            <i class="fas fa-bolt"></i> Energy Recommendations
+                        </div>
+                        <div class="recommendation-cards">
+                            {% for rec in recommendations.energy %}
+                                <div class="recommendation-card">
+                                    {{ rec }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Waste recommendations -->
+                    {% if 'waste' in recommendations and recommendations.waste %}
+                        <div class="recommendation-category mt-4">
+                            <i class="fas fa-trash"></i> Waste Recommendations
+                        </div>
+                        <div class="recommendation-cards">
+                            {% for rec in recommendations.waste %}
+                                <div class="recommendation-card">
+                                    {{ rec }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Overall recommendations -->
+                    {% if 'overall' in recommendations and recommendations.overall %}
+                        <div class="recommendation-category mt-4">
+                            <i class="fas fa-globe"></i> Overall Sustainability Recommendations
+                        </div>
+                        <div class="recommendation-cards">
+                            {% for rec in recommendations.overall %}
+                                <div class="recommendation-card">
+                                    {{ rec }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>About Our Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <p>Our recommendations are personalized based on your specific emissions data and patterns. They are designed to:</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                                    <h5>Reduce Your Carbon Footprint</h5>
+                                    <p>Targeted suggestions to lower emissions in your highest-impact areas</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-leaf fa-3x text-success mb-3"></i>
+                                    <h5>Improve Sustainability</h5>
+                                    <p>Practical changes that make a meaningful environmental difference</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-coins fa-3x text-warning mb-3"></i>
+                                    <h5>Save Resources</h5>
+                                    <p>Many eco-friendly choices also save money and improve efficiency</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if not error %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize breakdown chart
+        const breakdownData = {{ breakdown_chart|safe }};
+        Plotly.newPlot('breakdown-chart', breakdownData.data, breakdownData.layout, {responsive: true});
+    });
+</script>
+{% endif %}
+{% endblock %}

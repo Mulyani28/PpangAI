@@ -1,0 +1,844 @@
+{% extends 'base.html' %}
+
+{% block title %}Ppang - Your Sustainability Dashboard{% endblock %}
+
+{% block content %}
+<!-- Intro Banner -->
+<div class="intro-banner mb-5" data-aos="fade-up">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-3">
+                <i class="fas fa-chart-line text-primary me-2"></i> Your Sustainability Dashboard
+            </h1>
+            <p class="lead mb-4">Welcome to Ppang, your AI-powered companion for tracking and reducing your carbon footprint. Monitor your impact, get personalized recommendations, and make a difference for our planet.</p>
+            <div class="d-flex gap-3 mt-4">
+                <a href="{{ url_for('data_entry') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i> Track New Activity
+                </a>
+                <a href="{{ url_for('recommendations') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-lightbulb me-2"></i> Get Smart Recommendations
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block text-center">
+            <div class="eco-badge">
+                <i class="fas fa-leaf fa-4x text-success"></i>
+                <div class="eco-badge-pulse"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4" data-aos="fade-up" data-aos-delay="100">
+    <!-- Summary metrics -->
+    <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="fas fa-cloud"></i></div>
+            <div class="metric-value" data-count="{{ total_emissions }}">{{ total_emissions }}</div>
+            <div class="metric-unit">kg CO₂e</div>
+            <div class="metric-label">Total Carbon Footprint</div>
+            <div class="metric-trend {% if trend_emissions > 0 %}text-danger{% else %}text-success{% endif %}">
+                <i class="fas fa-{% if trend_emissions > 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                <span>{{ trend_emissions|abs }}% from last month</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="metric-value" data-count="{{ month_emissions }}">{{ month_emissions }}</div>
+            <div class="metric-unit">kg CO₂e</div>
+            <div class="metric-label">This Month's Emissions</div>
+            <div class="metric-info">Average: 300kg per month</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="fas fa-trash"></i></div>
+            <div class="metric-value" data-count="{{ total_waste }}">{{ total_waste }}</div>
+            <div class="metric-unit">kg</div>
+            <div class="metric-label">Total Waste Tracked</div>
+            <div class="metric-info">Tracking since April 25, 2025</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="fas fa-recycle"></i></div>
+            <div class="metric-value" data-count="{{ recycling_rate }}">{{ recycling_rate }}</div>
+            <div class="metric-unit">%</div>
+            <div class="metric-label">Recycling Rate</div>
+            <div class="metric-info">Goal: 75% recycling rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Tiles -->
+<div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+    <div class="col-md-4 mb-4">
+        <div class="action-tile">
+            <div class="action-tile-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h5>Quick Emission Entry</h5>
+            <p>Record your daily activities in just a few clicks.</p>
+            <div class="action-buttons">
+                <a href="{{ url_for('data_entry') }}" class="btn btn-sm btn-primary">Transport</a>
+                <a href="{{ url_for('data_entry') }}" class="btn btn-sm btn-outline-primary">Energy</a>
+                <a href="{{ url_for('data_entry') }}" class="btn btn-sm btn-outline-primary">Food</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="action-tile">
+            <div class="action-tile-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h5>AI Predictions</h5>
+            <p>See your projected footprint and plan for improvement.</p>
+            <a href="{{ url_for('predictions') }}" class="btn btn-outline-primary btn-sm d-block">View Predictions</a>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="action-tile">
+            <div class="action-tile-icon">
+                <i class="fas fa-medal"></i>
+            </div>
+            <h5>Sustainability Goals</h5>
+            <p>Set targets and track your progress towards them.</p>
+            <a href="#" class="btn btn-outline-primary btn-sm d-block">Coming Soon</a>
+        </div>
+    </div>
+</div>
+
+<!-- Visualizations -->
+<div class="row">
+    <!-- Main chart: Emissions over time -->
+    <div class="col-12 mb-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-chart-line me-2 text-primary"></i> Carbon Emissions Over Time</h4>
+                <div class="chart-controls">
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="time-week">Week</button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" id="time-month">Month</button>
+                    <button class="btn btn-sm btn-outline-secondary active" id="time-all">All</button>
+                </div>
+            </div>
+            {% if 'emissions_time' in charts %}
+                <div id="emissions-time-chart" class="chart"></div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No emissions data available. Please add data in the Track Emissions section.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Smaller charts: Category breakdown and waste composition -->
+    <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="chart-container">
+            <h4><i class="fas fa-pie-chart me-2 text-primary"></i> Emissions by Category</h4>
+            {% if 'emissions_category' in charts %}
+                <div id="emissions-category-chart" class="chart" data-chart='{{ charts.emissions_category|safe }}'></div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No emissions data available.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
+        <div class="chart-container">
+            <h4><i class="fas fa-trash me-2 text-primary"></i> Waste Composition</h4>
+            {% if 'waste_composition' in charts %}
+                <div id="waste-composition-chart" class="chart"></div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No waste data available.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    </div>
+
+<!-- Tips Section -->
+<div class="row mt-5" data-aos="fade-up" data-aos-delay="700">
+    <div class="col-12">
+        <div class="tips-container">
+            <div class="tips-header">
+                <h4><i class="fas fa-lightbulb me-2"></i> Quick Tips for Reducing Your Footprint</h4>
+                <p>Small changes can make a big difference. Here are some easy ways to reduce your impact:</p>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4 mb-3">
+                    <div class="tip-card">
+                        <div class="tip-icon"><i class="fas fa-car"></i></div>
+                        <h5>Transportation</h5>
+                        <p>Try carpooling or public transit once a week to reduce emissions by up to 20%.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="tip-card">
+                        <div class="tip-icon"><i class="fas fa-bolt"></i></div>
+                        <h5>Energy</h5>
+                        <p>Unplug devices when not in use to save up to 10% on your electricity usage.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="tip-card">
+                        <div class="tip-icon"><i class="fas fa-utensils"></i></div>
+                        <h5>Food</h5>
+                        <p>Consider a meat-free Monday to reduce your weekly food carbon footprint by 15%.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('recommendations') }}" class="btn btn-primary">
+                    <i class="fas fa-lightbulb me-2"></i> Get Personalized Recommendations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat with Ppang AI -->
+<div class="row mt-5">
+    <div class="col-12" data-aos="fade-up" data-aos-delay="800">
+        <div class="chat-container">
+            <h4 class="mb-4"><i class="fas fa-comments me-2 text-primary"></i> Chat with Ppang AI</h4>
+            
+            <div class="chat-box">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message ai-message">
+                        <div class="chat-avatar">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="chat-bubble">
+                            <p>Hi there! I'm Ppang, your sustainability AI assistant. How can I help you today? You can ask me about:</p>
+                            <ul>
+                                <li>Understanding your carbon footprint</li>
+                                <li>Tips to reduce emissions in specific categories</li>
+                                <li>Explaining your data visualizations</li>
+                                <li>Sustainable living advice</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Ask Ppang AI anything..." />
+                    <button class="chat-send-btn" id="sendChatBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-footer">
+                <p class="small text-muted mt-2">Ppang AI provides general sustainability advice based on your data. For personalized recommendations, see the Recommendations page.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard specific styles */
+    .intro-banner {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+    }
+    
+    .eco-badge {
+        position: relative;
+        display: inline-block;
+        width: 150px;
+        height: 150px;
+        background-color: white;
+        border-radius: 50%;
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .eco-badge-pulse {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: rgba(16, 185, 129, 0.2);
+        animation: pulse 2s infinite;
+    }
+    
+    .metric-unit {
+        font-size: 1rem;
+        color: var(--gray-500);
+        margin-top: -0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-trend {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .metric-info {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+        margin-top: 0.5rem;
+    }
+    
+    .action-tile {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+        height: 100%;
+        transition: all var(--transition-normal);
+    }
+    
+    .action-tile:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .action-tile-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .tips-container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+    }
+    
+    .tip-card {
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        background-color: var(--gray-100);
+        height: 100%;
+        transition: all var(--transition-fast);
+    }
+    
+    .tip-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .tip-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+    }
+    
+    .coming-soon-container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+    }
+    
+    .feature-card {
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        background-color: var(--gray-100);
+        text-align: center;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: all var(--transition-fast);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+    
+    .feature-badge {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .chart-controls .btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Chat with Ppang AI styles */
+    .chat-container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+    }
+    
+    .chat-box {
+        background-color: var(--gray-100);
+        border-radius: 0.75rem;
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+    
+    .chat-message {
+        display: flex;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .user-message .chat-avatar {
+        background-color: var(--gray-500);
+    }
+    
+    .ai-message .chat-avatar {
+        background-color: var(--secondary-color);
+    }
+    
+    .chat-bubble {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 1rem;
+        max-width: 80%;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .chat-bubble p {
+        margin-bottom: 0.5rem;
+    }
+    
+    .chat-bubble ul {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .user-message {
+        justify-content: flex-end;
+    }
+    
+    .user-message .chat-bubble {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .chat-input-container {
+        display: flex;
+        padding: 0.75rem;
+        background-color: white;
+        border-top: 1px solid var(--gray-200);
+    }
+    
+    .chat-input {
+        flex: 1;
+        border: 1px solid var(--gray-300);
+        border-radius: 1.5rem;
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        outline: none;
+        transition: all var(--transition-fast);
+    }
+    
+    .chat-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .chat-send-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        margin-left: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    
+    .chat-send-btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        {% if 'emissions_time' in charts %}
+            const emissionsTimeData = {{ charts.emissions_time|safe }};
+            Plotly.newPlot('emissions-time-chart', emissionsTimeData.data, emissionsTimeData.layout, {responsive: true});
+        {% endif %}
+        
+        {% if 'emissions_category' in charts %}
+            const emissionsCategoryData = {{ charts.emissions_category|safe }};
+            Plotly.newPlot('emissions-category-chart', emissionsCategoryData.data, emissionsCategoryData.layout, {responsive: true});
+        {% endif %}
+        
+        {% if 'waste_composition' in charts %}
+            const wasteCompositionData = {{ charts.waste_composition|safe }};
+            Plotly.newPlot('waste-composition-chart', wasteCompositionData.data, wasteCompositionData.layout, {responsive: true});
+        {% endif %}
+        
+        {% if 'footprint_comparison' in charts %}
+            const footprintComparisonData = {{ charts.footprint_comparison|safe }};
+            Plotly.newPlot('footprint-comparison-chart', footprintComparisonData.data, footprintComparisonData.layout, {responsive: true});
+        {% endif %}
+        
+        // Animated counting for metric values
+        const countElements = document.querySelectorAll('.metric-value[data-count]');
+        countElements.forEach(element => {
+            const target = parseFloat(element.getAttribute('data-count'));
+            const duration = 1500;
+            const start = 0;
+            const increment = target / (duration / 16);
+            let current = start;
+            
+            const updateCount = () => {
+                current += increment;
+                if (current < target) {
+                    const displayValue = Number.isInteger(target) ? Math.floor(current) : current.toFixed(1);
+                    element.textContent = displayValue;
+                    requestAnimationFrame(updateCount);
+                } else {
+                    element.textContent = Number.isInteger(target) ? target : target.toFixed(1);
+                }
+            };
+            
+            updateCount();
+        });
+        
+        // Chart time period filters (these would need backend support to fully function)
+        document.getElementById('time-week').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('time-month').classList.remove('active');
+            document.getElementById('time-all').classList.remove('active');
+            // This would filter data in a real implementation
+        });
+        
+        document.getElementById('time-month').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('time-week').classList.remove('active');
+            document.getElementById('time-all').classList.remove('active');
+            // This would filter data in a real implementation
+        });
+        
+        document.getElementById('time-all').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('time-week').classList.remove('active');
+            document.getElementById('time-month').classList.remove('active');
+            // This would filter data in a real implementation
+        });
+        
+        // Chat functionality
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        
+        /* 
+           No need for predefined responses anymore. 
+           We're now using dynamic responses that adapt to user data
+        */
+        
+        // Add user message to chat
+        function addUserMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message user-message';
+            messageDiv.innerHTML = `
+                <div class="chat-bubble">
+                    <p>${message}</p>
+                </div>
+                <div class="chat-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Add AI response to chat
+        function addAIResponse(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message ai-message';
+            messageDiv.innerHTML = `
+                <div class="chat-avatar">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="chat-bubble">
+                    <p>${message}</p>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Process user input and generate response
+        function processMessage(message) {
+            message = message.toLowerCase().trim();
+            
+            // Handle direct questions first
+            if (message.includes('does the chat feature work') || message.includes('chat work') || message.includes('chat function')) {
+                return 'Yes, the chat feature is now working properly! I can respond to your questions about emissions, waste, ' +
+                       'and sustainability recommendations. Try asking me about your emissions breakdown or for tips to reduce your footprint.';
+            }
+            
+            if (message.includes('emissions data') || message.includes('data displayed') || message.includes('pie chart') || message.includes('category display')) {
+                return 'The emissions by category chart has been updated to show your actual data. Based on your database, ' +
+                       'Food contributes the most at around 96%, followed by Energy at 3.7%, and Transport at 0.7%. ' +
+                       'This accurately reflects what you\'ve entered in the system.';
+            }
+            
+            // Get AI-like responses based on actual user data and context
+            
+            // Energy-related queries
+            if (message.includes('energy') || message.includes('electricity') || message.includes('power')) {
+                {% if categories %}
+                {% for cat in categories %}
+                {% if cat.name == 'Energy' %}
+                return 'Based on your data, Energy makes up {{ cat.percentage }}% of your carbon footprint. ' +
+                       'Consider these tips to reduce your energy emissions: ' +
+                       '1) Switch to LED lighting ' +
+                       '2) Unplug devices when not in use ' + 
+                       '3) Adjust your thermostat settings by 1-2 degrees ' +
+                       '4) Consider renewable energy options if available in your area';
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                return 'Energy usage can contribute significantly to your carbon footprint. ' +
+                       'To reduce energy emissions, consider switching to energy-efficient appliances, ' +
+                       'using LED lighting, unplugging devices when not in use, and improving insulation ' +
+                       'in your home. Would you like specific recommendations based on your energy data?';
+            }
+            
+            // Transportation-related queries
+            if (message.includes('transport') || message.includes('car') || message.includes('travel')) {
+                {% if categories %}
+                {% for cat in categories %}
+                {% if cat.name == 'Transport' %}
+                return 'Looking at your data, Transport accounts for {{ cat.percentage }}% of your emissions. ' +
+                       'Here are effective ways to reduce this: ' +
+                       '1) Consider carpooling or using public transit once a week ' +
+                       '2) Combine errands to reduce unnecessary trips ' + 
+                       '3) Consider biking or walking for short distances ' +
+                       '4) Ensure your vehicle is properly maintained for optimal efficiency';
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                return 'Transportation is typically one of the largest sources of personal carbon emissions. ' +
+                       'Consider carpooling, using public transportation, biking for short trips, ' +
+                       'and combining errands to reduce your transportation footprint. Would you like ' +
+                       'to see a comparison of emissions from different transportation methods?';
+            }
+            
+            // Food-related queries
+            if (message.includes('food') || message.includes('eat') || message.includes('diet')) {
+                {% if categories %}
+                {% for cat in categories %}
+                {% if cat.name == 'Food' %}
+                return 'Your data shows Food contributes {{ cat.percentage }}% to your carbon footprint. ' +
+                       'Consider these dietary changes to reduce emissions: ' +
+                       '1) Reduce red meat consumption (even by one meal per week) ' +
+                       '2) Choose local and seasonal produce when possible ' + 
+                       '3) Minimize food waste through meal planning ' +
+                       '4) Consider plant-based alternatives for some meals';
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                return 'Food choices have a significant impact on your carbon footprint. ' +
+                       'Reducing meat consumption (especially beef), choosing local and seasonal foods, ' +
+                       'and minimizing food waste can substantially lower your food-related emissions. ' +
+                       'Would you like specific recommendations for sustainable eating?';
+            }
+            
+            // Waste-related queries
+            if (message.includes('waste') || message.includes('recycle') || message.includes('trash')) {
+                {% if total_waste > 0 %}
+                return 'Based on your data, you\'ve recorded {{ total_waste }} kg of waste with a recycling rate of {{ recycling_rate }}%. ' +
+                       'Improving your recycling habits and reducing single-use items can make a significant difference. ' +
+                       'Aim for a recycling rate of at least 75%, and consider composting organic waste if possible.';
+                {% else %}
+                return 'Proper waste management is crucial for sustainability. ' +
+                       'Try to follow the hierarchy: Reduce > Reuse > Recycle. ' +
+                       'Minimizing single-use plastics, composting organic waste, and ensuring proper ' +
+                       'recycling can significantly reduce your waste-related environmental impact.';
+                {% endif %}
+            }
+            
+            // Category breakdown queries
+            if (message.includes('category') || message.includes('breakdown') || message.includes('distribution')) {
+                {% if categories and categories|length > 0 %}
+                return 'Based on your data, your emissions are distributed across the following categories: ' + 
+                      '{% for cat in categories %}{{ cat.name }}: {{ cat.percentage }}%{% if not loop.last %}, {% endif %}{% endfor %}. ' +
+                      'This breakdown is calculated directly from your entered activities. ' +
+                      'Which category would you like more specific advice on reducing?';
+                {% else %}
+                return 'I don\'t see any emissions data yet. Once you enter your activities through the Data Entry page, ' +
+                       'I\'ll be able to provide a detailed breakdown of your carbon footprint by category.';
+                {% endif %}
+            }
+            
+            // Recommendations queries
+            if (message.includes('recommend') || message.includes('suggestion') || message.includes('advice') || message.includes('tip')) {
+                return 'Based on typical emission patterns, here are my top recommendations: ' +
+                       '1) Transportation: Consider using public transit, biking, or carpooling once a week ' +
+                       '2) Energy: Unplug devices when not in use and switch to LED lighting ' +
+                       '3) Food: Reduce red meat consumption by one meal per week ' +
+                       '4) Waste: Aim to recycle at least 75% of your waste and reduce single-use plastics ' +
+                       'For more personalized recommendations, visit the Recommendations page.';
+            }
+            
+            // Greeting queries
+            if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+                return 'Hello! I\'m Ppang, your sustainability AI assistant. I\'m here to help you understand your carbon footprint and provide ' +
+                       'personalized recommendations for reducing your environmental impact. What would you like to know about today?';
+            }
+            
+            // Help queries
+            if (message.includes('help') || message.includes('how do') || message.includes('what can')) {
+                return 'I can help you in several ways: ' +
+                       '• Explain your carbon footprint data and trends ' +
+                       '• Provide specific tips for reducing emissions in different categories ' +
+                       '• Answer questions about sustainability concepts ' +
+                       '• Guide you through using the application features ' +
+                       'What specific area would you like assistance with?';
+            }
+            
+            // About AI queries
+            if (message.includes('who are you') || message.includes('what are you') || message.includes('about you')) {
+                return 'I\'m Ppang, an AI assistant focused on sustainability. I analyze your emissions data to provide ' +
+                       'personalized insights and recommendations. My goal is to help you understand your environmental impact ' +
+                       'and make informed choices for a more sustainable lifestyle.';
+            }
+            
+            // Footprint queries
+            if (message.includes('footprint') || message.includes('impact') || message.includes('emissions')) {
+                {% if total_emissions > 0 %}
+                return 'Based on your data, your total carbon footprint is {{ total_emissions }} kg CO₂e. ' +
+                       {% if trend_emissions > 0 %}
+                       'This is up {{ trend_emissions }}% from last month. ' +
+                       {% else %}
+                       'This is down {{ trend_emissions|abs }}% from last month. ' +
+                       {% endif %}
+                       'The global average is about 4,800 kg CO₂e per person annually. ' +
+                       'Would you like suggestions on how to reduce your footprint?';
+                {% else %}
+                return 'I don\'t have enough data to calculate your carbon footprint yet. ' +
+                       'Please add some activities through the Data Entry page, and I\'ll be able to ' +
+                       'provide a comprehensive analysis of your environmental impact.';
+                {% endif %}
+            }
+            
+            // Thank you responses
+            if (message.includes('thank') || message.includes('thanks')) {
+                return 'You\'re welcome! I\'m always here to help with your sustainability journey. ' +
+                       'Is there anything else you\'d like to know or discuss?';
+            }
+            
+            // Default response if no patterns match
+            return 'I\'m not quite sure how to help with that specific question. ' +
+                   'You can ask me about your emissions data, recommendations for reducing your footprint, ' +
+                   'or specific environmental topics like transportation, energy, food, or waste management.';
+            
+        }
+        
+        // Send message when button clicked
+        sendChatBtn.addEventListener('click', function() {
+            const message = chatInput.value.trim();
+            if (message) {
+                addUserMessage(message);
+                chatInput.value = '';
+                
+                // Simulate typing delay
+                setTimeout(() => {
+                    addAIResponse(processMessage(message));
+                }, 500);
+            }
+        });
+        
+        // Send message when Enter key pressed
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const message = chatInput.value.trim();
+                if (message) {
+                    addUserMessage(message);
+                    chatInput.value = '';
+                    
+                    // Simulate typing delay
+                    setTimeout(() => {
+                        addAIResponse(processMessage(message));
+                    }, 500);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Insights | Ppang Carbon Footprint Tracker{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">AI-Powered Insights</h1>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2 text-center mb-4">
+            <p class="lead">
+                Our AI analyzes your emission patterns and provides personalized insights to help you 
+                reduce your carbon footprint more effectively.
+            </p>
+        </div>
+    </div>
+    
+<!-- Sustainability Score + Category Insights side by side -->
+<div class="row mb-5">
+    <!-- Sustainability Score -->
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Your Sustainability Score</h3>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <h4 class="mb-3">{{ sustainability_score.rating }}</h4>
+                        <div class="score-details">
+                            <p class="h5">Score: {{ sustainability_score.score }}/100</p>
+                            <p class="text-muted">{{ sustainability_score.comparison_to_average }}</p>
+                            
+                            {% if insights.emission_details %}
+                            <div class="mt-12">
+                                <h5>Emission Summary</h5>
+                                <p>Total: {{ "%.2f"|format(insights.emission_details.total) }} kg CO2e</p>
+                                <p>Daily Average: {{ "%.2f"|format(insights.emission_details.daily_average) }} kg CO2e</p>
+                                <p>Categories Tracked: {{ insights.emission_details.categories }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Insights -->
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title mb-0">Category Insights</h3>
+            </div>
+            <div class="card-body">
+                {% if insights.category_insights %}
+                <div class="category-details">
+                    {% for category, data in insights.category_insights.items() %}
+                    <div class="category-item mb-3">
+                        <h5>{{ category }}</h5>
+                        <p>Contribution: {{ "%.1f"|format(data.percentage) }}%</p>
+                        <p>Top Source: {{ data.top_subcategory }} ({{ "%.2f"|format(data.top_subcategory_amount) }} kg CO2e)</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- AI Recommendations -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">AI-Powered Recommendations</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Strengths -->
+                        <div class="col-md-6">
+                            <h4>Your Strengths</h4>
+                            <ul class="list-group">
+                                {% for strength in insights.strengths %}
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    {{ strength }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <!-- Areas for Improvement -->
+                        <div class="col-md-6">
+                            <h4>Areas for Improvement</h4>
+                            <ul class="list-group">
+                                {% for improvement in insights.areas_for_improvement %}
+                                <li class="list-group-item">
+                                    <i class="fas fa-arrow-circle-up text-warning"></i>
+                                    {{ improvement }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<div class="row">
+    <!-- Emission Details -->
+    <div class="col-12 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h3 class="card-title">Emission Details</h3>
+            </div>
+            <div class="card-body">
+                <!-- Your Emission Details content -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5>Total Emissions</h5>
+                        <p class="lead">{{ "%.2f"|format(insights.emission_details.total) }} kg CO2e</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Daily Average</h5>
+                        <p class="lead">{{ "%.2f"|format(insights.emission_details.daily_average) }} kg CO2e</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Categories Tracked</h5>
+                        <p class="lead">{{ insights.emission_details.categories }}</p>
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Category Breakdown</h4>
+                <div class="list-group mt-3">
+                {% for insight in insights.insights %}
+                    <div class="list-group-item">
+                        <i class="fas fa-chart-line me-2"></i>
+                        {{ insight }}
+                    </div>
+                {% endfor %}
+                </div>
+                  </div>
+        </div>
+    </div>
+
+    <!-- Personalized Recommendations -->
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title mb-0">Personalized Recommendations</h3> 
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for recommendation in recommendations %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 {% if recommendation.impact == 'high' %}border-danger{% elif recommendation.impact == 'medium' %}border-warning{% else %}border-info{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">{{ recommendation.title }}</h5>
+                                    <span class="badge {% if recommendation.impact == 'high' %}badge-danger{% elif recommendation.impact == 'medium' %}badge-warning{% else %}badge-info{% endif %}">
+                                        {{ recommendation.impact|capitalize }} Impact
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">{{ recommendation.description }}</p>
+                                    <div class="text-muted small">Category: {{ recommendation.category|capitalize }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Time Chart
+        const timeChartData = {{ time_chart|safe }};
+        Plotly.newPlot('timeChart', JSON.parse(timeChartData).data, JSON.parse(timeChartData).layout);
+        
+        // Category Chart
+        const categoryChartData = {{ category_chart|safe }};
+        Plotly.newPlot('categoryChart', JSON.parse(categoryChartData).data, JSON.parse(categoryChartData).layout);
+        
+        // Score Chart
+        const scoreChartData = {{ score_chart|safe }};
+        Plotly.newPlot('scoreChart', JSON.parse(scoreChartData).data, JSON.parse(scoreChartData).layout);
+
+        // Trend Chart
+        const trendChartData = {{ trend_chart|safe }};
+        Plotly.newPlot('trendChart', JSON.parse(trendChartData).data, JSON.parse(trendChartData).layout);
+    });
+</script>
+{% endblock %}
+
+

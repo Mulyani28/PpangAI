@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Ppang - Predictions{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-chart-bar text-primary"></i> Predictions and Forecasting
+</h1>
+
+{% if error %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-body text-center">
+            <h5 class="card-title">Need more data for predictions?</h5>
+            <p class="card-text">Add your emissions data first to unlock ML-powered forecasts.</p>
+            <a href="{{ url_for('data_entry') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Add Emission Data
+            </a>
+        </div>
+    </div>
+{% else %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h4>Carbon Footprint Prediction</h4>
+                <div id="forecast-chart" class="chart"></div>
+            </div>
+    
+             <div class="col-md-12">
+                <div class="chart-container">
+                    <h4>Emission Reduction Scenario</h4>
+                    <div id="scenario-chart" class="chart"></div>
+                    <div class="alert alert-success mt-3">
+                        <i class="fas fa-leaf"></i> By implementing a <strong>{{ selected_scenario }}</strong>, you could save approximately <strong>{{ reduction_amount|round(2) }} kg CO2e</strong> over the next {{ future_days }} days.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Prediction Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('predictions') }}">
+                        <div class="mb-3">
+                            <label for="prediction_days" class="form-label">Prediction Period</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="prediction_days" name="prediction_days" min="7" max="90" value="{{ prediction_days }}">
+                                <span class="input-group-text">days</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reduction_scenario" class="form-label">Reduction Scenario</label>
+                            <select class="form-select" id="reduction_scenario" name="reduction_scenario">
+                                {% for option in reduction_options %}
+                                    <option value="{{ option }}" {% if option == selected_scenario %}selected{% endif %}>{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Update Prediction
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Prediction Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="metric-card mb-3">
+                        <div class="metric-icon"><i class="fas fa-cloud"></i></div>
+                        <div class="metric-value">{{ total_predicted|round(2) }} kg</div>
+                        <div class="metric-label">Total Predicted Emissions</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-calendar-day"></i></div>
+                        <div class="metric-value">{{ avg_predicted|round(2) }} kg</div>
+                        <div class="metric-label">Daily Average (Predicted)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+
+
+
+
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>About Our Prediction Model</h5>
+                </div>
+                <div class="card-body">
+                    <p>Our machine learning model analyzes your historical emissions data to forecast future trends. The prediction takes into account:</p>
+                    <ul>
+                        <li><strong>Seasonal patterns</strong> in your emissions</li>
+                        <li><strong>Day-of-week variations</strong> that might affect your carbon footprint</li>
+                        <li><strong>Overall trends</strong> in your sustainability journey</li>
+                    </ul>
+                    <p>The model is retrained with your latest data for improved accuracy. Keep adding data to enhance prediction quality!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Ready to reduce your environmental impact?</h5>
+                    <p class="card-text">Get personalized recommendations based on your emissions data.</p>
+                    <a href="{{ url_for('recommendations') }}" class="btn btn-primary">
+                        <i class="fas fa-lightbulb"></i> Get Recommendations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if not error %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize forecast chart
+        const forecastData = {{ charts.forecast|safe }};
+        Plotly.newPlot('forecast-chart', forecastData.data, forecastData.layout, {responsive: true});
+        
+        // Initialize scenario chart
+        const scenarioData = {{ charts.scenario|safe }};
+        Plotly.newPlot('scenario-chart', scenarioData.data, scenarioData.layout, {responsive: true});
+    });
+</script>
+{% endif %}
+{% endblock %}
